@@ -60,17 +60,24 @@ namespace MOVEitFileTransfer
             }
 
             FileSystemWatcher watcher = new FileSystemWatcher(localFolderPath);
+
             watcher.Created += async (sender, e) =>
             {
                 string newFilePath = e.FullPath;
                 await UploadFile(newFilePath, folderId, authToken);
             };
+
+            watcher.Deleted += async (sender, e) =>
+            {
+                string deletedFilePath = e.FullPath;
+                await DeleteFile(deletedFilePath, authToken);
+            };
+
             watcher.EnableRaisingEvents = true;
 
             Console.WriteLine($"Monitoring local folder '{localFolderPath}' for new files. Press any key to exit...");
             Console.ReadKey();
         }
-
 
         public static async Task<string> Authenticate(string username, string password)
         {
@@ -138,6 +145,7 @@ namespace MOVEitFileTransfer
 
             throw new InvalidOperationException("No folders found with write permissions or invalid folder ID.");
         }
+
         public static async Task UploadFile(string filePath, string folderId, string authToken)
         {
             string uploadUrl = $"{moveitServerUrl}/folders/{folderId}/files";
@@ -166,5 +174,73 @@ namespace MOVEitFileTransfer
                 }
             }
         }
+
+        public static async Task DeleteFile(string localFileToRemove, string authToken)
+        {
+            try
+            {
+                string fileName = Path.GetFileName(localFileToRemove);
+
+                string fileId = await GetFileId(fileName, authToken);
+
+                if (fileId != null)
+                {
+                    string deleteUrl = $"{moveitServerUrl}/files/{fileId}";
+
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
+
+                    HttpResponseMessage response = await client.DeleteAsync(deleteUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"Deleted '{fileName}' from MOVEit Transfer.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to delete '{fileName}' from MOVEit Transfer.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"File '{fileName}' not found in MOVEit Transfer.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting file from MOVEit Transfer - {ex.Message}");
+            }
+        }
+
+        public static async Task<string> GetFileId(string fileName, string authToken)
+        {
+            string filesUrl = $"{moveitServerUrl}/files";
+
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
+
+            HttpResponseMessage response = await client.GetAsync(filesUrl);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var filesResponse = JsonDocument.Parse(responseContent).RootElement;
+
+            if (filesResponse.TryGetProperty("items", out var items) && items.ValueKind == JsonValueKind.Array && items.GetArrayLength() > 0)
+            {
+                foreach (var file in items.EnumerateArray())
+                {
+                    if (file.TryGetProperty("name", out var name) && name.GetString() == fileName)
+                    {
+                        if (file.TryGetProperty("id", out var id))
+                        {
+                            return id.ToString();
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
     }
 }
