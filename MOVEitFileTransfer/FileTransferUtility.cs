@@ -75,14 +75,13 @@ namespace MOVEitFileTransfer
             {
                 foreach (var folder in items.EnumerateArray())
                 {
-                    if (folder.TryGetProperty("permission", out var permission))
+                    if (folder.TryGetProperty("permission", out var permission) &&
+                        permission.TryGetProperty("canWriteFiles", out var canWriteFiles) &&
+                        canWriteFiles.GetBoolean())
                     {
-                        if (permission.TryGetProperty("canWriteFiles", out var canWriteFiles) && canWriteFiles.GetBoolean())
+                        if (folder.TryGetProperty("id", out var id))
                         {
-                            if (folder.TryGetProperty("id", out var id))
-                            {
-                                return id.ToString();
-                            }
+                            return id.ToString();
                         }
                     }
                 }
@@ -172,12 +171,9 @@ namespace MOVEitFileTransfer
             {
                 foreach (var file in items.EnumerateArray())
                 {
-                    if (file.TryGetProperty("name", out var name) && name.GetString() == fileName)
+                    if (file.TryGetProperty("name", out var name) && name.GetString() == fileName && file.TryGetProperty("id", out var id))
                     {
-                        if (file.TryGetProperty("id", out var id))
-                        {
-                            return id.ToString();
-                        }
+                        return id.ToString();
                     }
                 }
             }

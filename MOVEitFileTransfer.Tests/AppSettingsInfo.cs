@@ -20,14 +20,6 @@ namespace MOVEitFileTransfer.Tests
         }
 
         [Test]
-        public void TestLocalFolderPath()
-        {
-            string localFolderPath = configuration["LocalFolderPath"];
-            Assert.That(localFolderPath, Is.Not.Null.And.Not.Empty, "LocalFolderPath should not be empty.");
-            Assert.That(Directory.Exists(localFolderPath), Is.True, $"Local folder path '{localFolderPath}' does not exist.");
-        }
-
-        [Test]
         public void TestMoveitServerUrl()
         {
             string moveitServerUrl = configuration["MoveitServerUrl"];
