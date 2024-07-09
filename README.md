@@ -1,7 +1,7 @@
 # MOVEit File Transfer Application
 
 **MOVEitFileTransfer** is a .NET application that monitors a local folder for new files and uploads them to MOVEit Transfer via its REST API.
-It also supports deleting files from MOVEit Transfer when they are deleted from the local folder.
+It also supports deleting and renaming files from MOVEit Transfer when changes are made to the local folder.
 
 ---
 
@@ -9,10 +9,9 @@ It also supports deleting files from MOVEit Transfer when they are deleted from 
 
 - [Overview](#overview)
 - [Features](#features)
-- [Getting Started](#getting-started)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
 - [Installation](#installation)
 
 ---
@@ -23,16 +22,16 @@ MOVEitFileTransfer automates the process of transferring files between a local d
 
 ---
 
+
 ## Features
 
 - **Automated Monitoring**: Monitors a designated local folder for new files.
 - **Secure Uploads**: Automatically uploads new files to MOVEit Transfer using its REST API.
 - **File Deletion Sync**: Deletes files from MOVEit Transfer when deleted locally.
+- **File Renaming**: Renames files on MOVEit Transfer when renamed in the local folder.
 - **Configuration Flexibility**: Configurable via `appsettings.json` for local folder path and MOVEit Transfer server details.
 
 ---
-
-## Getting Started
 
 ### Configuration
 To configure the application, insert your credentials into the `appsettings.json`.
@@ -40,7 +39,6 @@ To configure the application, insert your credentials into the `appsettings.json
    ```json
    {
      "MoveitServerUrl": "https://testserver.moveitcloud.com/api/v1",
-     "LocalFolderPath": "path_to_your_local_folder",
      "Username": "your_moveit_username",
      "Password": "your_moveit_password"
    }
@@ -70,6 +68,10 @@ To configure the application, insert your credentials into the `appsettings.json
    - Locate the files you want to transfer.
    - Copy or move these files into the specified folder. MoveIt will detect and initiate transfer based on its configuration.
 
+5. **Rename Files from the Folder:**
+    - Identify the files you wish to rename.
+    - Rename these files directly in the specified folder. MOVEit will update its records accordingly.
+  
 5. **Delete Files from the Folder:**
    - Identify the files you wish to remove from the transfer process.
    - Delete these files directly from the specified folder. MoveIt will update its transfer queue accordingly.
