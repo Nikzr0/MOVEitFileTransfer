@@ -10,18 +10,18 @@ namespace MOVEitFileTransfer
 
         static async Task Main(string[] args)
         {
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            string localFolderPath = Path.Combine(desktopPath, "Local");
+
+            if (!Directory.Exists(localFolderPath))
+            {
+                Directory.CreateDirectory(localFolderPath);
+                Console.WriteLine($"Created local folder '{localFolderPath}' on the desktop.");
+            }
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
-
-            string localFolderPath = configuration["LocalFolderPath"];
-
-            if (string.IsNullOrEmpty(localFolderPath))
-            {
-                Console.WriteLine("LocalFolderPath is not configured in appsettings.json.");
-                return;
-            }
 
             string username = configuration["Username"];
             string password = configuration["Password"];
