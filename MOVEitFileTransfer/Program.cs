@@ -73,6 +73,13 @@ namespace MOVEitFileTransfer
                 await DeleteFile(deletedFilePath, authToken);
             };
 
+            watcher.Renamed += async (sender, e) =>
+            {
+                string oldFilePath = e.OldFullPath;
+                string newFilePath = e.FullPath;
+                await RenameFile(oldFilePath, newFilePath, authToken);
+            };
+
             watcher.EnableRaisingEvents = true;
 
             Console.WriteLine($"Monitoring local folder '{localFolderPath}' for new files. Press any key to exit...");
@@ -168,9 +175,9 @@ namespace MOVEitFileTransfer
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to upload '{Path.GetFileName(filePath)}'."); // Status code: {response.StatusCode}
-                                                                                            //Console.WriteLine($"Upload URL: {uploadUrl}");
-                                                                                            //Console.WriteLine($"Response Content: {await response.Content.ReadAsStringAsync()}");
+                    Console.WriteLine($"Failed to upload '{Path.GetFileName(filePath)}'.");
+                                                                                           
+                                                                                           
                 }
             }
         }
@@ -242,5 +249,49 @@ namespace MOVEitFileTransfer
             return null;
         }
 
+        public static async Task RenameFile(string oldFilePath, string newFilePath, string authToken)
+        {
+            try
+            {
+                string oldFileName = Path.GetFileName(oldFilePath);
+                string newFileName = Path.GetFileName(newFilePath);
+
+                string fileId = await GetFileId(oldFileName, authToken);
+
+                if (fileId != null)
+                {
+                    string renameUrl = $"{moveitServerUrl}/files/{fileId}";
+
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
+
+                    var renameData = new Dictionary<string, string>
+                    {
+                        { "name", newFileName }
+                    };
+
+                    var content = new StringContent(JsonSerializer.Serialize(renameData), System.Text.Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PatchAsync(renameUrl, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"Renamed '{oldFileName}' to '{newFileName}' in MOVEit Transfer.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to rename '{oldFileName}' to '{newFileName}' in MOVEit Transfer.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"File '{oldFileName}' not found in MOVEit Transfer.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error renaming file in MOVEit Transfer - {ex.Message}");
+            }
+        }
     }
 }
